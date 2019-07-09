@@ -3,13 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class bothItemsClicked: UnityEvent<int> {};
+public class itemIndexes: UnityEvent<int> {};
+public class itemObjects: UnityEvent<Tile> {};
+
 public class TileManager : MonoBehaviour
 {
     private int clickedItems = 0;
     private Tile tileOne, tileTwo;
     public List<GameObject> tiles;
-    public bothItemsClicked bothClicked = new bothItemsClicked();
+
+    public itemIndexes click1 = new itemIndexes();
+    public itemIndexes click2 = new itemIndexes();
+    public itemObjects object1 = new itemObjects();
+    public itemObjects object2 = new itemObjects();
     // Start is called before the first frame update
     void Start()
     {
@@ -34,7 +40,10 @@ public class TileManager : MonoBehaviour
 
             int t1 = findTile(tileOne);
             int t2 = findTile(tileTwo);
-            print(t1); print(t2);
+            click1.Invoke(t1);
+            click2.Invoke(t2);
+            object1.Invoke(tileOne);
+            object2.Invoke(tileTwo);
         }
     }
 

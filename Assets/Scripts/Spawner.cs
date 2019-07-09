@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
+    private bool p1, p2, p3, p4 = false;
+    private int t1, t2;
+    private Tile tile1, tile2;
+
     public List<GameObject> Sprites;
     public List<GameObject> gameBoard = new List<GameObject>();
     private GameObject tileManager;
@@ -19,14 +23,19 @@ public class Spawner : MonoBehaviour
         createBoard(gameBoard);
 
         tileManager = GameObject.Find("Tile Grid");
-        tileManager.GetComponent<TileManager>().addListener(swapTiles);
+        tileManager.GetComponent<TileManager>().click1.AddListener(indOne);
+        tileManager.GetComponent<TileManager>().click2.AddListener(indTwo);
+        tileManager.GetComponent<TileManager>().object1.AddListener(objOne);
+        tileManager.GetComponent<TileManager>().object2.AddListener(objTwo);
         
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (p1 && p2 && p3 && p4) {
+            tileSwap();
+        }
     }
 
     //checks specific object's location validity
@@ -112,7 +121,30 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    void swapTiles(int a, int b) {
-        
+    //functions to aid in setting swap tile parameters
+    void indOne(int one) {
+        p1 = true;
+        t1 = one;
+    }
+
+    void indTwo(int two) {
+        p2 = true;
+        t2 = two;
+    }
+
+    void objOne(Tile t){
+        p3 = true;
+        tile1 = t;
+    }
+
+    void objTwo(Tile t) {
+        p4 = true;
+        tile2 = t;
+    }
+
+    //function to swap tiles
+    void tileSwap() {
+        p1 = false; p2 = false; p3 = false; p4 = false;
+        print("it worked, wooooohoooootie");
     }
 }
