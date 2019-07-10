@@ -145,6 +145,93 @@ public class Spawner : MonoBehaviour
     //function to swap tiles
     void tileSwap() {
         p1 = false; p2 = false; p3 = false; p4 = false;
-        print("it worked, wooooohoooootie");
+        if (checkSwappable()) {
+            changeTileColor(0);
+        }
+        else {
+            changeTileColor(1);
+        }
     }
+
+    //returns boolean depending on if tiles can be swapped
+    bool checkSwappable() {
+        return checkAdjacent() && checkMatching();
+    }
+
+    //returns boolean depending if tiles are adjacent
+    bool checkAdjacent() {
+        List<int> adjacentTiles = new List<int> {t1-9, (t1-9) - 1, (t1 - 9) + 1, t1 - 1, t1 + 1, (t1+9) - 1, t1 + 9, (t1 + 9) + 1};
+        return adjacentTiles.Contains(t2);
+    }
+
+    //returns boolean depending if swap causes 3+ matching tiles in a row
+    bool checkMatching() {
+        return checkTileMatches(t1, t2) || checkTileMatches(t2, t1);
+    }
+
+    //returns boolean depending on if individual tile has valid swaps
+    bool checkTileMatches(int t, int newSpot) {
+        List<int> adjacentTiles = new List<int> {newSpot-9, (newSpot-9) - 1, (newSpot - 9) + 1, newSpot - 1, newSpot + 1, (newSpot+9) - 1, newSpot + 9, (newSpot + 9) + 1};
+        int counter = 0;
+        foreach (int tile in adjacentTiles) {
+            if (tile >= 0 && tile <= 44) { 
+                if (gameBoard[tile].tag == gameBoard[t].tag) {
+                    if (counter == 0) {
+                        if (newSpot - 18 >= 0 && gameBoard[newSpot - 18].tag == gameBoard[t].tag) return true;
+                        else if (newSpot + 9 <= 44 && gameBoard[newSpot + 9].tag == gameBoard[t].tag) return true;
+                    }
+                    else if (counter == 1) {
+                        if (newSpot - 18 - 1 >= 0 && gameBoard[newSpot - 18 - 1].tag == gameBoard[t].tag) return true;
+                        else if (newSpot + 9 + 1 <= 44 && gameBoard[newSpot + 9 + 1].tag == gameBoard[t].tag) return true;
+                    }
+                    else if (counter == 2) {
+                        if (newSpot - 18 + 1 >= 0 && gameBoard[newSpot - 18 + 1].tag == gameBoard[t].tag) return true;
+                        else if (newSpot + 9 - 1 <= 44 && gameBoard[newSpot + 9 - 1].tag == gameBoard[t].tag) return true;
+                    } 
+                    else if (counter == 3 || counter == 4) {
+                        if (newSpot - 2 >= 0 && gameBoard[newSpot - 2].tag == gameBoard[t].tag) return true;
+                        else if (newSpot + 2 <= 44 && gameBoard[newSpot + 2].tag == gameBoard[t].tag) return true;
+                    }
+                    else if (counter == 5) {
+                        if (newSpot + 18 - 1 <= 44  && gameBoard[newSpot + 18 - 1].tag == gameBoard[t].tag) return true;
+                        else if (newSpot - 9 + 1 >= 0 && gameBoard[newSpot - 9 + 1].tag == gameBoard[t].tag) return true;
+                    }
+                    else if (counter == 6) {
+                        if (newSpot + 18 <= 44 && gameBoard[newSpot + 18].tag == gameBoard[t].tag) return true;
+                        else if (newSpot - 9 >= 0 && gameBoard[newSpot - 9].tag == gameBoard[t].tag) return true;
+                    }
+                    else if (counter == 7) {
+                        if (newSpot + 18 + 1 <= 44 && gameBoard[newSpot + 18 + 1].tag == gameBoard[t].tag) return true;
+                        else if (newSpot - 9 - 1 >= 0 && gameBoard[newSpot - 9 - 1].tag == gameBoard[t].tag) return true;
+                    }
+                }
+            }
+            ++counter;
+        }
+
+        return false;
+    }
+
+    //function to change color of second tile to red or green depending on validity
+    void changeTileColor(int color) {
+        SpriteRenderer sprite2 = tile2.GetComponent<SpriteRenderer>();
+        SpriteRenderer sprite1 = tile1.GetComponent<SpriteRenderer>();
+        if (color == 0) {
+            sprite2.color = Color.green;
+        }
+
+        else if (color == 1) {
+            sprite2.color = Color.red;
+            sprite1.color = Color.red;
+            StartCoroutine(backToWhite(sprite1, sprite2));
+        }
+    } 
+
+    //coroutine to wait a second and turn tiles back to white
+    IEnumerator backToWhite(SpriteRenderer s1, SpriteRenderer s2) {
+        yield return new WaitForSeconds(1);
+        s1.color = Color.white;
+        s2.color = Color.white;
+    }
+
 }

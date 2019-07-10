@@ -29,10 +29,16 @@ public class TileManager : MonoBehaviour
         
     }
 
+    void changeTileColor(Tile t) {
+        SpriteRenderer sprite = t.GetComponent<SpriteRenderer>();
+        sprite.color = Color.green;
+    }
+
     void tileHit(Tile t) {
         if (clickedItems == 0) {
             tileOne = t;
             clickedItems += 1;
+            changeTileColor(t);
         }
         else if (clickedItems == 1) {
             tileTwo = t;
