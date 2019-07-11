@@ -11,6 +11,7 @@ public class Spawner : MonoBehaviour
     public List<GameObject> Sprites;
     public List<GameObject> gameBoard = new List<GameObject>();
     private GameObject tileManager;
+    private List<GameObject> drawnBoard = new List<GameObject>();
     // Start is called before the first frame update
     void Start()
     {
@@ -78,6 +79,7 @@ public class Spawner : MonoBehaviour
         for (int i = 0; i < 45; ++i) {
             var newItem = Instantiate(gameBoard[i], new Vector3(x, y, 0.0f), Quaternion.identity);
             newItem.transform.parent = this.transform;
+            drawnBoard.Add(newItem);
             counter += 1;
             if (counter == 9 && i != 0) {
                 x = -8.03f;
@@ -140,44 +142,20 @@ public class Spawner : MonoBehaviour
     }
 
     //returns boolean depending on if individual tile has valid swaps
-    bool checkTileMatches(int t, int newSpot) {
-        List<int> adjacentTiles = new List<int> {newSpot-9, (newSpot-9) - 1, (newSpot - 9) + 1, newSpot - 1, newSpot + 1, (newSpot+9) - 1, newSpot + 9, (newSpot + 9) + 1};
+    bool checkTileMatches(int item, int newSpot) {
+        List<int> adjacentTiles = new List<int> {newSpot - 9 - 1, newSpot - 9, newSpot - 9 + 1, newSpot - 1, newSpot + 1, newSpot + 9 - 1, newSpot + 9, newSpot + 9 + 1};
+        List<int> twoSteps = new List<int> {newSpot - 18 - 2, newSpot - 18, newSpot - 18 + 2, newSpot - 2, newSpot + 2, newSpot + 18 - 2, newSpot + 18, newSpot + 18 + 2};
         int counter = 0;
-        foreach (int tile in adjacentTiles) {
-            if (tile >= 0 && tile <= 44) { 
-                if (gameBoard[tile].tag == gameBoard[t].tag) {
-                    if (counter == 0) {
-                        if (newSpot - 18 >= 0 && gameBoard[newSpot - 18].tag == gameBoard[t].tag) return true;
-                        else if (newSpot + 9 <= 44 && gameBoard[newSpot + 9].tag == gameBoard[t].tag) return true;
-                    }
-                    else if (counter == 1) {
-                        if (newSpot - 18 - 1 >= 0 && gameBoard[newSpot - 18 - 1].tag == gameBoard[t].tag) return true;
-                        else if (newSpot + 9 + 1 <= 44 && gameBoard[newSpot + 9 + 1].tag == gameBoard[t].tag) return true;
-                    }
-                    else if (counter == 2) {
-                        if (newSpot - 18 + 1 >= 0 && gameBoard[newSpot - 18 + 1].tag == gameBoard[t].tag) return true;
-                        else if (newSpot + 9 - 1 <= 44 && gameBoard[newSpot + 9 - 1].tag == gameBoard[t].tag) return true;
-                    } 
-                    else if (counter == 3 || counter == 4) {
-                        if (newSpot - 2 >= 0 && gameBoard[newSpot - 2].tag == gameBoard[t].tag) return true;
-                        else if (newSpot + 2 <= 44 && gameBoard[newSpot + 2].tag == gameBoard[t].tag) return true;
-                    }
-                    else if (counter == 5) {
-                        if (newSpot + 18 - 1 <= 44  && gameBoard[newSpot + 18 - 1].tag == gameBoard[t].tag) return true;
-                        else if (newSpot - 9 + 1 >= 0 && gameBoard[newSpot - 9 + 1].tag == gameBoard[t].tag) return true;
-                    }
-                    else if (counter == 6) {
-                        if (newSpot + 18 <= 44 && gameBoard[newSpot + 18].tag == gameBoard[t].tag) return true;
-                        else if (newSpot - 9 >= 0 && gameBoard[newSpot - 9].tag == gameBoard[t].tag) return true;
-                    }
-                    else if (counter == 7) {
-                        if (newSpot + 18 + 1 <= 44 && gameBoard[newSpot + 18 + 1].tag == gameBoard[t].tag) return true;
-                        else if (newSpot - 9 - 1 >= 0 && gameBoard[newSpot - 9 - 1].tag == gameBoard[t].tag) return true;
-                    }
-                }
+        foreach (int t in adjacentTiles) { 
+            if (t >= 0 && t <= 44 && twoSteps[counter] >= 0 && twoSteps[counter] <= 44) { 
+                if (gameBoard[t].tag == gameBoard[twoSteps[counter]].tag && gameBoard[t].tag == gameBoard[item].tag)
+                    return true;
             }
             ++counter;
         }
+
+        if (newSpot + 1 <= 44 && newSpot - 1 >= 0)
+            if (gameBoard[item].tag == gameBoard[newSpot - 1].tag && gameBoard[item].tag == gameBoard[newSpot + 1].tag) return true;
 
         return false;
     }
@@ -206,12 +184,24 @@ public class Spawner : MonoBehaviour
 
     //function that swaps and destroys tiles
     void swapTiles() {
-        if (checkTileMatches(t1, t2)) {
-            print("numbah one");
-        }
+        swapDestroy();
+    }
 
-        if (checkTileMatches(t2, t1)) {
-            print("numbah two");
-        }
+    void swapDestroy() {
+        GameObject obj1 = drawnBoard[t1];
+        GameObject obj2 = drawnBoard[t2];
+
+        Vector3 newPos1 = new Vector3(obj2.transform.position.x, obj2.transform.position.y, obj2.transform.position.z);
+        Vector3 newPos2 = new Vector3(obj1.transform.position.x, obj1.transform.position.y, obj1.transform.position.z);
+
+        drawnBoard[t1].transform.position = newPos1;
+        drawnBoard[t2].transform.position = newPos2;
+
+        drawnBoard[t1] = obj2;
+        drawnBoard[t2] = obj1;
+
+        GameObject one = gameBoard[t1];
+        gameBoard[t1] = gameBoard[t2];
+        gameBoard[t2] = one;
     }
 }
