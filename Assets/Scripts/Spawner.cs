@@ -203,5 +203,63 @@ public class Spawner : MonoBehaviour
         GameObject one = gameBoard[t1];
         gameBoard[t1] = gameBoard[t2];
         gameBoard[t2] = one;
+
+        StartCoroutine(destroy());
+    }
+
+    //coroutine to wait a second before tiles turn back to white and pieces are destroyed
+    IEnumerator destroy(){
+        yield return new WaitForSeconds(1);
+
+        SpriteRenderer sprite2 = tile2.GetComponent<SpriteRenderer>();
+        SpriteRenderer sprite1 = tile1.GetComponent<SpriteRenderer>();
+
+        sprite2.color = Color.white;
+        sprite1.color = Color.white;
+
+        findDestroy();
+    }
+
+    //find string of items to destroy
+    void findDestroy() {
+        horizontalCheck();
+    }
+
+    //checks horizontally for matches
+    void horizontalCheck() {
+        int counter = 1;
+        List<int> temp = new List<int>();
+        List<int> itemsToDestroy = new List<int>();
+        GameObject lastChecked = gameBoard[0];
+        int consecutive = 1;
+        for (int i = 1; i < 45; ++i) {          
+            if (counter == 9) {
+                consecutive = 1;
+                lastChecked = gameBoard[i];
+            }
+            else {
+                if (lastChecked.tag == gameBoard[i].tag) {
+                    if (consecutive == 1) temp.Add(i - 1);
+                    consecutive += 1;
+                    temp.Add(i);
+                }
+                else { 
+                    if (consecutive >= 3) itemsToDestroy = temp;
+                    consecutive = 1;
+                    if (consecutive < 3) temp = new List<int>();
+                }
+            }
+            lastChecked = gameBoard[i];
+            counter++;
+        }
+
+        foreach (int d in itemsToDestroy) {
+            Destroy(drawnBoard[d]);
+            drawnBoard[d] = null;
+            gameBoard[d] = null; 
+        }
+        
+        
+
     }
 }
