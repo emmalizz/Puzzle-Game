@@ -132,7 +132,7 @@ public class Spawner : MonoBehaviour
 
     //returns boolean depending if tiles are adjacent
     bool checkAdjacent() {
-        List<int> adjacentTiles = new List<int> {t1-9, (t1-9) - 1, (t1 - 9) + 1, t1 - 1, t1 + 1, (t1+9) - 1, t1 + 9, (t1 + 9) + 1};
+        List<int> adjacentTiles = new List<int> {t1-9,  t1 - 1, t1 + 1,  t1 + 9};
         return adjacentTiles.Contains(t2);
     }
 
@@ -142,22 +142,21 @@ public class Spawner : MonoBehaviour
     }
 
     //returns boolean depending on if individual tile has valid swaps
-    bool checkTileMatches(int item, int newSpot) {
-        List<int> adjacentTiles = new List<int> {newSpot - 9 - 1, newSpot - 9, newSpot - 9 + 1, newSpot - 1, newSpot + 1, newSpot + 9 - 1, newSpot + 9, newSpot + 9 + 1};
-        List<int> twoSteps = new List<int> {newSpot - 18 - 2, newSpot - 18, newSpot - 18 + 2, newSpot - 2, newSpot + 2, newSpot + 18 - 2, newSpot + 18, newSpot + 18 + 2};
-        int counter = 0;
-        foreach (int t in adjacentTiles) { 
-            if (t >= 0 && t <= 44 && twoSteps[counter] >= 0 && twoSteps[counter] <= 44) { 
-                if (gameBoard[t].tag == gameBoard[twoSteps[counter]].tag && gameBoard[t].tag == gameBoard[item].tag)
-                    return true;
-            }
-            ++counter;
+    bool checkTileMatches(int item, int newSpot) { 
+
+        GameObject one = gameBoard[t1];
+        gameBoard[t1] = gameBoard[t2];
+        gameBoard[t2] = one;
+
+        if (horizontalCheck().Count == 0 && verticalCheck().Count == 0) {
+            return false;
+        }
+        else {
+            gameBoard[t2] = gameBoard[t1];
+            gameBoard[t1] = one;
+            return true;
         }
 
-        if (newSpot + 1 <= 44 && newSpot - 1 >= 0)
-            if (gameBoard[item].tag == gameBoard[newSpot - 1].tag && gameBoard[item].tag == gameBoard[newSpot + 1].tag) return true;
-
-        return false;
     }
 
     //function to change color of second tile to red or green depending on validity
@@ -222,11 +221,22 @@ public class Spawner : MonoBehaviour
 
     //find string of items to destroy
     void findDestroy() {
-        horizontalCheck();
+        List<int> horizontalDestroy = horizontalCheck();
+        foreach (int d in horizontalDestroy) {
+            Destroy(drawnBoard[d]);
+            drawnBoard[d] = null;
+            gameBoard[d] = null; 
+        }
+       List<int> verticalDestroy = verticalCheck();
+       foreach (int i in verticalDestroy) {
+            Destroy(drawnBoard[i]);
+            drawnBoard[i] = null;
+            gameBoard[i] = null; 
+       }
     }
 
     //checks horizontally for matches
-    void horizontalCheck() {
+    List<int> horizontalCheck() {
         int counter = 1;
         List<int> temp = new List<int>();
         List<int> itemsToDestroy = new List<int>();
@@ -253,13 +263,35 @@ public class Spawner : MonoBehaviour
             counter++;
         }
 
-        foreach (int d in itemsToDestroy) {
-            Destroy(drawnBoard[d]);
-            drawnBoard[d] = null;
-            gameBoard[d] = null; 
+        return itemsToDestroy;
+    }
+
+    //checks vertically for matches
+
+    List<int> verticalCheck() {
+        List<int> temp = new List<int>();
+        List<int> itemsToDestroy = new List<int>();
+        GameObject lastChecked = gameBoard[0];
+        int consecutive = 1;
+        for (int i = 0; i < 9; ++i) {
+            lastChecked = gameBoard[i];
+            for (int j = 1; j < 5; ++j) { 
+                if (lastChecked.tag == gameBoard[i + (9 * j)].tag) {
+                    if (consecutive == 1) temp.Add(i + (9 * (j-1)));
+                    consecutive += 1;
+                    temp.Add(i + (9 * j));
+                    lastChecked = gameBoard[i + (9 * j)];
+                }
+                else {
+                    if (consecutive >= 3) itemsToDestroy = temp;
+                    consecutive = 1;
+                    if (consecutive < 3) temp = new List<int>();
+                    lastChecked = gameBoard[i + (9 * j)];
+                }
+            }
         }
-        
-        
+
+        return itemsToDestroy;
 
     }
 }
