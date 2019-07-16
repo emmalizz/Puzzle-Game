@@ -221,26 +221,26 @@ public class Spawner : MonoBehaviour
 
     //find string of items to destroy
     void findDestroy() {
-        // List<int> horizontalDestroy = horizontalCheck();
-        // foreach (int d in horizontalDestroy) {
-        //    Destroy(drawnBoard[d]);
-        //    drawnBoard[d] = null;
-        //    gameBoard[d] = null; 
-        // }
-       List<int> verticalDestroy = verticalCheck();
-       foreach (int i in verticalDestroy) {
-           print(i);
-           Destroy(drawnBoard[i]);
-           drawnBoard[i] = null;
-           gameBoard[i] = null; 
-       }
-    //    List<int> ldDestroy = leftDiagnolCheck();
-    //    foreach (int i in ldDestroy) {
+    //     List<int> horizontalDestroy = horizontalCheck();
+    //     foreach (int d in horizontalDestroy) {
+    //        Destroy(drawnBoard[d]);
+    //        drawnBoard[d] = null;
+    //        gameBoard[d] = null; 
+    //     }
+    //    List<int> verticalDestroy = verticalCheck();
+    //    foreach (int i in verticalDestroy) {
     //        print(i);
     //        Destroy(drawnBoard[i]);
     //        drawnBoard[i] = null;
     //        gameBoard[i] = null; 
     //    }
+       List<int> ldDestroy = leftDiagnolCheck();
+       foreach (int i in ldDestroy) {
+           print(i);
+           Destroy(drawnBoard[i]);
+           drawnBoard[i] = null;
+           gameBoard[i] = null; 
+       }
     }
 
     //checks horizontally for matches
@@ -307,6 +307,7 @@ public class Spawner : MonoBehaviour
     //checks diagonally starting at the upper left corner for matches
     List<int> leftDiagnolCheck(){
         List<int> bottomAndRight = new List<int> {8, 17, 26, 35, 44, 36, 37, 38, 38, 39, 40, 41, 42, 43};
+        List<int> leftSide = new List<int> {9, 18, 27, 36};
         List<int> itemsToDestroy = new List<int>();
         List<int> temp = new List<int>();
         GameObject lastChecked = gameBoard[0]; 
@@ -333,6 +334,32 @@ public class Spawner : MonoBehaviour
                         increment += 1;
                     }
                 }
+            }
+        }
+        if (itemsToDestroy.Count == 0) {
+            foreach (int a in leftSide) {
+                lastChecked = gameBoard[a];
+                int increment = 1;
+                bool inBounds = true;
+                for (int j = 1; j < 5; ++j) { 
+                    if (bottomAndRight.Contains(a + (9 * (j - 1) + (increment - 1)))) inBounds = false;
+                        if (inBounds) { 
+                            if (lastChecked.tag == gameBoard[a + (9 * j) + increment].tag) { 
+                            if (consecutive == 1) temp.Add(a + (9 * (j - 1)) + (increment - 1));
+                            consecutive += 1;
+                            temp.Add(a + (9 * j) + increment);
+                            lastChecked = gameBoard[a + (9 * j) + increment];
+                            increment += 1;
+                        }
+                        else {
+                            if (consecutive >= 3) itemsToDestroy = temp;
+                            temp = new List<int>();
+                            consecutive = 1;
+                            lastChecked = gameBoard[a + (9 * j) + increment];
+                            increment += 1;
+                        }
+                }
+            }
             }
         }
         return itemsToDestroy;
