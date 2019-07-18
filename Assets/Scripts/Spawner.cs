@@ -148,7 +148,7 @@ public class Spawner : MonoBehaviour
         gameBoard[t1] = gameBoard[t2];
         gameBoard[t2] = one;
 
-        if (verticalCheck().Count == 0 && leftDiagonalCheck().Count == 0) {
+        if (rightDiagonalCheck().Count == 0) {
             return false;
         }
         else {
@@ -221,20 +221,26 @@ public class Spawner : MonoBehaviour
 
     //find string of items to destroy
     void findDestroy() {
-        // List<int> horizontalDestroy = horizontalCheck();
-        // foreach (int d in horizontalDestroy) {
-        //    Destroy(drawnBoard[d]);
-        //    drawnBoard[d] = null;
-        //    gameBoard[d] = null; 
-        // }
-       List<int> verticalDestroy = verticalCheck();
-       foreach (int i in verticalDestroy) {
-           Destroy(drawnBoard[i]);
-           drawnBoard[i] = null;
-           gameBoard[i] = null; 
-       }
-       List<int> ldDestroy = leftDiagonalCheck();
-       foreach (int i in ldDestroy) {
+    //     List<int> horizontalDestroy = horizontalCheck();
+    //     foreach (int d in horizontalDestroy) {
+    //        Destroy(drawnBoard[d]);
+    //        drawnBoard[d] = null;
+    //        gameBoard[d] = null; 
+    //     }
+    //    List<int> verticalDestroy = verticalCheck();
+    //    foreach (int i in verticalDestroy) {
+    //        Destroy(drawnBoard[i]);
+    //        drawnBoard[i] = null;
+    //        gameBoard[i] = null; 
+    //    }
+    //    List<int> ldDestroy = leftDiagonalCheck();
+    //    foreach (int i in ldDestroy) {
+    //        Destroy(drawnBoard[i]);
+    //        drawnBoard[i] = null;
+    //        gameBoard[i] = null; 
+    //    }
+        List<int> rdDestroy = rightDiagonalCheck();
+        foreach (int i in rdDestroy) {
            Destroy(drawnBoard[i]);
            drawnBoard[i] = null;
            gameBoard[i] = null; 
@@ -335,6 +341,55 @@ public class Spawner : MonoBehaviour
                 tempIndex.Add(i + (9 * j) + increment);
                 tempItems.Add(gameBoard[i + (9 * j) + increment]);
                 if (rightBottom.Contains(i + (9 * j) + increment)) break;
+                increment += 1;
+            }
+            indicies.Add(tempIndex);
+            tileItems.Add(tempItems);
+        }
+        for (int a = 0; a < tileItems.Count; ++a) {
+            GameObject lastChecked = tileItems[a][0];
+            int consecutive = 1;
+            List<int> temp = new List<int>();
+            for (int b = 1; b < tileItems[a].Count; ++b) {  
+                if (tileItems[a][b].tag == lastChecked.tag) { 
+                    if (consecutive == 1) temp.Add(indicies[a][b-1]);
+                    consecutive += 1;
+                    temp.Add(indicies[a][b]);
+                    lastChecked = tileItems[a][b];
+                }
+                else {
+                     if (consecutive >= 3) { 
+                        itemsToDestroy = temp;
+                    }
+                    temp = new List<int>();
+                    consecutive = 1;
+                    lastChecked = tileItems[a][b];
+                }
+            }
+            if (consecutive >= 3) { 
+                itemsToDestroy = temp;
+            }
+
+        }
+        return itemsToDestroy;
+    }
+
+    //checks diagonally starting in bottom left corner
+    List<int> rightDiagonalCheck() {
+        List<int> itemsToDestroy = new List<int>();
+        List<List<int>> indicies = new List<List<int>>();
+        List<List<GameObject>> tileItems = new List<List<GameObject>>();
+        List<int> diagonals = new List<int> {0,9,18,27,36,37,38,39,40,41,42,43,44};
+        List<int> topRight = new List<int> {0,1,2,3,4,5,6,7,8,17,26,35,44};
+
+        foreach (int i in diagonals) {
+            List<int> tempIndex = new List<int>();
+            List<GameObject> tempItems = new List<GameObject>();
+            int increment = 0;
+            for (int j = 0; j < 5; ++j) {
+                tempIndex.Add(i - (9 * j) + increment);
+                tempItems.Add(gameBoard[i - (9 * j) + increment]);
+                if (topRight.Contains(i - (9 * j) + increment)) break;
                 increment += 1;
             }
             indicies.Add(tempIndex);
