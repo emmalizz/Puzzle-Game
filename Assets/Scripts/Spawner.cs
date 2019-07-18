@@ -148,7 +148,7 @@ public class Spawner : MonoBehaviour
         gameBoard[t1] = gameBoard[t2];
         gameBoard[t2] = one;
 
-        if (verticalCheck().Count == 0) {
+        if (verticalCheck().Count == 0 && leftDiagonalCheck().Count == 0) {
             return false;
         }
         else {
@@ -229,18 +229,16 @@ public class Spawner : MonoBehaviour
         // }
        List<int> verticalDestroy = verticalCheck();
        foreach (int i in verticalDestroy) {
-           print(i);
            Destroy(drawnBoard[i]);
            drawnBoard[i] = null;
            gameBoard[i] = null; 
        }
-    //    List<int> ldDestroy = leftDiagnolCheck();
-    //    foreach (int i in ldDestroy) {
-    //        print(i);
-    //        Destroy(drawnBoard[i]);
-    //        drawnBoard[i] = null;
-    //        gameBoard[i] = null; 
-    //    }
+       List<int> ldDestroy = leftDiagonalCheck();
+       foreach (int i in ldDestroy) {
+           Destroy(drawnBoard[i]);
+           drawnBoard[i] = null;
+           gameBoard[i] = null; 
+       }
     }
 
     //checks horizontally for matches
@@ -296,7 +294,7 @@ public class Spawner : MonoBehaviour
             GameObject lastChecked = tileItems[a][0];
             int consecutive = 1;
             List<int> temp = new List<int>();
-            for (int b = 1; b < tileItems[a].Count; ++b) { print(tileItems[a][b].tag); print(lastChecked.tag); 
+            for (int b = 1; b < tileItems[a].Count; ++b) { 
                 if (tileItems[a][b].tag == lastChecked.tag) { 
                     if (consecutive == 1) temp.Add(indicies[a][b-1]);
                     consecutive += 1;
@@ -322,62 +320,50 @@ public class Spawner : MonoBehaviour
     }
 
     //checks diagonally starting at the upper left corner for matches
-    List<int> leftDiagnolCheck(){
-        List<int> bottomAndRight = new List<int> {8, 17, 26, 35, 44, 36, 37, 38, 38, 39, 40, 41, 42, 43};
-        List<int> leftSide = new List<int> {9, 18, 27, 36};
+    List<int> leftDiagonalCheck(){
         List<int> itemsToDestroy = new List<int>();
-        List<int> temp = new List<int>();
-        GameObject lastChecked = gameBoard[0]; 
-        int consecutive = 1;
-        for (int i = 0; i < 9; ++i) {
-            lastChecked = gameBoard[i];
-            int increment = 1;
-            bool inBounds = true;
-            for (int j = 1; j < 5; ++j) { 
-                if (bottomAndRight.Contains(i + (9 * (j - 1) + (increment - 1)))) inBounds = false;
-                if (inBounds) { 
-                    if (lastChecked.tag == gameBoard[i + (9 * j) + increment].tag) { 
-                        if (consecutive == 1) temp.Add(i + (9 * (j - 1)) + (increment - 1));
-                        consecutive += 1;
-                        temp.Add(i + (9 * j) + increment);
-                        lastChecked = gameBoard[i + (9 * j) + increment];
-                        increment += 1;
-                    }
-                    else {
-                        if (consecutive >= 3) itemsToDestroy = temp;
-                        temp = new List<int>();
-                        consecutive = 1;
-                        lastChecked = gameBoard[i + (9 * j) + increment];
-                        increment += 1;
-                    }
-                }
+        List<List<int>> indicies = new List<List<int>>();
+        List<List<GameObject>> tileItems = new List<List<GameObject>>();
+        List<int> diagonals = new List<int> {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 18, 27, 36};
+        List<int> rightBottom = new List<int>  {8, 17, 26, 35, 44, 36, 37, 38, 39, 40, 41, 42, 43};
+
+        foreach (int i in diagonals) {
+            List<int> tempIndex = new List<int>();
+            List<GameObject> tempItems = new List<GameObject>();
+            int increment = 0;
+            for (int j = 0; j < 5; ++j) {
+                tempIndex.Add(i + (9 * j) + increment);
+                tempItems.Add(gameBoard[i + (9 * j) + increment]);
+                if (rightBottom.Contains(i + (9 * j) + increment)) break;
+                increment += 1;
             }
+            indicies.Add(tempIndex);
+            tileItems.Add(tempItems);
         }
-        if (itemsToDestroy.Count == 0) {
-            foreach (int a in leftSide) {
-                lastChecked = gameBoard[a];
-                int increment = 1;
-                bool inBounds = true;
-                for (int j = 1; j < 5; ++j) { 
-                    if (bottomAndRight.Contains(a + (9 * (j - 1) + (increment - 1)))) inBounds = false;
-                        if (inBounds) { 
-                            if (lastChecked.tag == gameBoard[a + (9 * j) + increment].tag) { 
-                            if (consecutive == 1) temp.Add(a + (9 * (j - 1)) + (increment - 1));
-                            consecutive += 1;
-                            temp.Add(a + (9 * j) + increment);
-                            lastChecked = gameBoard[a + (9 * j) + increment];
-                            increment += 1;
-                        }
-                        else {
-                            if (consecutive >= 3) itemsToDestroy = temp;
-                            temp = new List<int>();
-                            consecutive = 1;
-                            lastChecked = gameBoard[a + (9 * j) + increment];
-                            increment += 1;
-                        }
+        for (int a = 0; a < tileItems.Count; ++a) {
+            GameObject lastChecked = tileItems[a][0];
+            int consecutive = 1;
+            List<int> temp = new List<int>();
+            for (int b = 1; b < tileItems[a].Count; ++b) {  
+                if (tileItems[a][b].tag == lastChecked.tag) { 
+                    if (consecutive == 1) temp.Add(indicies[a][b-1]);
+                    consecutive += 1;
+                    temp.Add(indicies[a][b]);
+                    lastChecked = tileItems[a][b];
+                }
+                else {
+                     if (consecutive >= 3) { 
+                        itemsToDestroy = temp;
+                    }
+                    temp = new List<int>();
+                    consecutive = 1;
+                    lastChecked = tileItems[a][b];
                 }
             }
+            if (consecutive >= 3) { 
+                itemsToDestroy = temp;
             }
+
         }
         return itemsToDestroy;
     }
