@@ -12,6 +12,7 @@ public class Spawner : MonoBehaviour
     public List<GameObject> gameBoard = new List<GameObject>();
     private GameObject tileManager;
     private List<GameObject> drawnBoard = new List<GameObject>();
+    private List<Vector3> transforms = new List<Vector3>();
     // Start is called before the first frame update
     void Start()
     {
@@ -80,6 +81,7 @@ public class Spawner : MonoBehaviour
             var newItem = Instantiate(gameBoard[i], new Vector3(x, y, 0.0f), Quaternion.identity);
             newItem.transform.parent = this.transform;
             drawnBoard.Add(newItem);
+            transforms.Add(newItem.transform.position);
             counter += 1;
             if (counter == 9 && i != 0) {
                 x = -8.03f;
@@ -148,7 +150,7 @@ public class Spawner : MonoBehaviour
         gameBoard[t1] = gameBoard[t2];
         gameBoard[t2] = one;
 
-        if (rightDiagonalCheck().Count == 0) {
+        if (rightDiagonalCheck().Count == 0 && leftDiagonalCheck().Count == 0  && verticalCheck().Count == 0 && horizontalCheck().Count == 0) {
             return false;
         }
         else {
@@ -221,30 +223,34 @@ public class Spawner : MonoBehaviour
 
     //find string of items to destroy
     void findDestroy() {
-    //     List<int> horizontalDestroy = horizontalCheck();
-    //     foreach (int d in horizontalDestroy) {
-    //        Destroy(drawnBoard[d]);
-    //        drawnBoard[d] = null;
-    //        gameBoard[d] = null; 
-    //     }
-    //    List<int> verticalDestroy = verticalCheck();
-    //    foreach (int i in verticalDestroy) {
-    //        Destroy(drawnBoard[i]);
-    //        drawnBoard[i] = null;
-    //        gameBoard[i] = null; 
-    //    }
-    //    List<int> ldDestroy = leftDiagonalCheck();
-    //    foreach (int i in ldDestroy) {
-    //        Destroy(drawnBoard[i]);
-    //        drawnBoard[i] = null;
-    //        gameBoard[i] = null; 
-    //    }
+        List<int> horizontalDestroy = horizontalCheck();
+        foreach (int d in horizontalDestroy) {
+           Destroy(drawnBoard[d]);
+           drawnBoard[d] = null;
+           gameBoard[d] = null; 
+        }
+       if (horizontalDestroy.Count > 0) fall();
+       List<int> verticalDestroy = verticalCheck();
+       foreach (int i in verticalDestroy) {
+           Destroy(drawnBoard[i]);
+           drawnBoard[i] = null;
+           gameBoard[i] = null; 
+       }
+       if (verticalDestroy.Count > 0) fall();
+       List<int> ldDestroy = leftDiagonalCheck();
+       foreach (int i in ldDestroy) {
+           Destroy(drawnBoard[i]);
+           drawnBoard[i] = null;
+           gameBoard[i] = null; 
+       }
+       if (ldDestroy.Count > 0) fall();
         List<int> rdDestroy = rightDiagonalCheck();
         foreach (int i in rdDestroy) {
            Destroy(drawnBoard[i]);
            drawnBoard[i] = null;
            gameBoard[i] = null; 
        }
+       if (rdDestroy.Count > 0) fall();
     }
 
     //checks horizontally for matches
@@ -421,5 +427,57 @@ public class Spawner : MonoBehaviour
 
         }
         return itemsToDestroy;
+    }
+
+    //function that causes items to fall into place after matches are destroyed
+    void fall() {
+        List<List<int>> indicies = new List<List<int>>();
+        List<List<GameObject>> tileItems = new List<List<GameObject>>();
+        for (int i = 0; i < 9; ++i) {
+        List<int> tempIndex = new List<int>();
+        List<GameObject> tempItems = new List<GameObject>();
+        for (int j = 0; j < 5; ++j) {
+            tempIndex.Add(i + (9 * j));
+            tempItems.Add(gameBoard[i + (9 * j)]);
+        }
+        indicies.Add(tempIndex);
+        tileItems.Add(tempItems);
+        }
+
+        foreach (List<GameObject> column in tileItems) {
+            for (int g = column.Count - 2; g >= 0; --g) {
+                if (column[g + 1] == null) {
+                    int t = g + 1;
+                    while (t < column.Count && column[t] == null) {
+                        t += 1;
+                    }
+                    column[t - 1] = column[g];
+                    column[g] = null;
+                }
+            }
+        }
+
+        foreach (List<GameObject> column in tileItems) {
+            for (int g = 0; g < column.Count; ++g) 
+                if (column[g] == null) column[g] = Sprites[Random.Range(0, 5)]; }
+        
+        destroyBoard();
+
+        int col = 0;
+        foreach (List<GameObject> column in tileItems) {
+            int j = 0;
+            for (int g = 0; g < column.Count; ++g) {
+                gameBoard[col + (9 * j)] = column[g];
+                drawnBoard[col + (9 * j)] = Instantiate(column[g], transforms[col + (9 * j)], Quaternion.identity);
+                j += 1;
+                }
+            col += 1;
+        }
+    }
+
+    void destroyBoard() {
+        for (int i = 0; i < drawnBoard.Count; ++i) {
+            Destroy(drawnBoard[i]);
+        }
     }
 }
